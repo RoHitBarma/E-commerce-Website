@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const registerUser = async(req, res) => {
     // we take data from the request body
@@ -83,6 +83,12 @@ const loginUser = async(req, res) => {
             return res.status(400).json({status: 400, success: false, message: "Invalid credentials!"})
         }
 
+        const token = jwt.sign(
+            {_id: isUserExist._id},
+            process.env.JWT_SECRET,
+            {expiresIn: process.env.JWT_EXPIRES_IN}
+        )
+
         const userResponse = {
             _id: isUserExist._id,
             name: isUserExist.name,
@@ -90,7 +96,12 @@ const loginUser = async(req, res) => {
             avatar: isUserExist.avatar
         }
 
-        return res.status(200).json({status: 200, success: true, message: "User logged in successfully!", data: userResponse})
+        return res.status(200).json({
+            status: 200, 
+            success: true, 
+            message: "User logged in successfully!", 
+            token: token,
+            data: userResponse})
 
     } catch (error) {
         res.status(500).json({status: 500, success: false, message: "Internal server error!"})
